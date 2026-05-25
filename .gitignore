@@ -3,6 +3,7 @@ data/raw/
 .env
 references/*.pdf
 references/Meine Bibliothek.bib
+.DS_Store
 __pycache__/
 *.pyc
 *.log

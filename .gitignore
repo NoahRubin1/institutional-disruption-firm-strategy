@@ -2,6 +2,7 @@
 data/raw/
 .env
 references/*.pdf
+references/Meine Bibliothek.bib
 __pycache__/
 *.pyc
 *.log

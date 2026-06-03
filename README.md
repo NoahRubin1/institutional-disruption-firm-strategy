@@ -59,7 +59,7 @@ Following institutional disruptions, treated firms significantly increase
 geographic diversification of their supply chains, substituting away from
 disrupted regions toward third-country partners — consistent with the
 "diversification rather than reshoring" pattern documented in recent literature
-(Hayakawa & Matsuura, 2025; Fajgelbaum et al., 2024).
+(Hayakawa & Matsuura, 2025; Fajgelbaum et al., 2021).
 
 ---
 
@@ -119,5 +119,5 @@ institutional-disruption-firm-strategy/
 ## Literature
 See `references/library.bib` for the full bibliography.
 Key references: North (1990), Teece et al. (1997), Acemoglu & Robinson (2012),
-Fajgelbaum et al. (2024), Caldara & Iacoviello (2022),
+Fajgelbaum et al. (2021), Caldara & Iacoviello (2022),
 Callaway & Sant'Anna (2021), Baker et al. (2022).

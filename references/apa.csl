@@ -377,7 +377,7 @@
           <name and="symbol" delimiter-precedes-last="always" name-as-sort-order="all"/>
           <label prefix=" (" suffix=")" text-case="title"/>
         </names>
-        <names variable="editor-translator"/>
+        <names variable="editortranslator"/>
         <!-- `translator` is not cited as a primary creator (only as Ed. & Trans.). -->
         <names variable="editor"/>
         <names variable="editorial-director"/>
@@ -420,7 +420,7 @@
       <text macro="author"/>
       <choose>
         <!-- add nonprimary authors equivalent to those appearing "on a book cover"; do not modify the in-text citation (APA 9.8) -->
-        <if match="none" variable="author compiler composer editor editor-translator illustrator"/>
+        <if match="none" variable="author compiler composer editor editortranslator illustrator"/>
         <else-if match="any" type="book musical_score pamphlet report standard">
           <names prefix="(" suffix=")" variable="contributor">
             <label form="verb" suffix=" "/>
@@ -1029,9 +1029,9 @@
             <label form="short" prefix=", " text-case="title"/>
           </names>
           <choose>
-            <if variable="container-title editor-translator"/>
+            <if variable="container-title editortranslator"/>
             <else-if variable="container-title">
-              <!-- TODO: Check logic once processors start to automatically populate `editor-translator` -->
+              <!-- TODO: Check logic once processors start to automatically populate `editortranslator` -->
               <names delimiter="; " variable="translator">
                 <name and="symbol"/>
                 <label form="short" prefix=", " text-case="title"/>
@@ -1679,11 +1679,11 @@
       <substitute>
         <names variable="executive-producer"/>
         <names variable="series-creator"/>
-        <names variable="editor-translator">
+        <names variable="editortranslator">
           <name and="symbol"/>
           <label form="short" prefix=" (" suffix=")" text-case="title"/>
         </names>
-        <!-- TODO: Translator omitted on the assumption that editor-translators are uncommon for chapter citations. If needed, direct entry or automatic population of `editor-translator` can produce combined labels. -->
+        <!-- TODO: Translator omitted on the assumption that editortranslators are uncommon for chapter citations. If needed, direct entry or automatic population of `editortranslator` can produce combined labels. -->
         <names delimiter="; " variable="editor">
           <name and="symbol"/>
           <label form="short" prefix=" (" suffix=")" text-case="title"/>

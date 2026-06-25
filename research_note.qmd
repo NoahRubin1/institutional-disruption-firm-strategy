@@ -1,10 +1,10 @@
 ---
 title: "Institutional Disruption and Firm Performance"
 subtitle: "Evidence from the US-China Trade War — A Panel Difference-in-Differences Analysis"
-author: Noah Rubin | ExInt II | WU Vienna | SS 2026 |
-  https://github.com/NoahRubin1/institutional-disruption-firm-strategy
+author: "Noah Rubin | ExInt II | WU Vienna | SS 2026 | [github.com/NoahRubin1/institutional-disruption-firm-strategy](https://github.com/NoahRubin1/institutional-disruption-firm-strategy)"
 date: "June 2026"
 bibliography: references/library.bib
+csl: references/apa.csl
 jupyter:
   kernelspec:
     name: sme-venv
@@ -18,7 +18,6 @@ format:
       x: 2.5cm
       y: 2.5cm
     fontsize: 11pt
-    bibliography-style: "apa"
 execute:
   eval: true
   echo: false

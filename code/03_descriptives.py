@@ -1,39 +1,35 @@
 """
 03_descriptives.py
 ------------------
-Summary statistics and exploratory figures.
+Summary statistics and exploratory figures for the US-China trade war
+difference-in-differences design.
 
 Input:  data/processed/panel_clean.parquet
 Output: output/tables/summary_statistics.csv
         output/figures/correlation_matrix.png
-        output/figures/doi_roa_relationship.png
-        output/figures/sample_composition.png
-
-Notes on pandas index alignment
---------------------------------
-When subsetting a DataFrame and then assigning new columns, always reset
-the index to avoid the silent misalignment bug:
-
-    high = df[df["sales"] > 400].copy()
-    high.reset_index(drop=True, inplace=True)  # ← always do this
-    high["score"] = pd.Series([10, 20])        # now aligns correctly
+        output/figures/dv_distribution.png
+        output/figures/main_relationship.png
 """
+
+import warnings
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from pathlib import Path
+
+warnings.filterwarnings("ignore")
 
 # ── Style ─────────────────────────────────────────────────────────────────────
 sns.set_theme(style="whitegrid", palette="muted")
 plt.rcParams.update({"figure.dpi": 150, "font.family": "sans-serif"})
 WU_BLUE = "#002f5f"
-WU_RED  = "#c8102e"
+WU_RED = "#c8102e"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-DATA_PATH   = Path("data/processed/panel_clean.parquet")
-TABLE_PATH  = Path("output/tables")
+DATA_PATH = Path("data/processed/panel_with_vars.parquet")
+TABLE_PATH = Path("output/tables")
 FIGURE_PATH = Path("output/figures")
 TABLE_PATH.mkdir(parents=True, exist_ok=True)
 FIGURE_PATH.mkdir(parents=True, exist_ok=True)
@@ -44,12 +40,13 @@ print(f"Loaded {len(df):,} observations | {df['gvkey'].nunique():,} firms")
 
 # ── 1. Summary Statistics ─────────────────────────────────────────────────────
 VAR_LABELS = {
-    "roa":          "ROA",
-    "doi":          "DOI (foreign income share)",
-    "rd_intensity": "R&D intensity",
-    "ln_at":        "Firm size (log assets)",
-    "leverage":     "Leverage",
-    "age":          "Firm age (years)",
+    "roa": "RoA (ib/at)",
+    "treated_x_post": "Treated x Post (DiD)",
+    "rd_intensity": "R&D Intensity (xrd/at)",
+    "ln_at": "Firm Size (log assets)",
+    "leverage": "Leverage (dltt/at)",
+    "capx_intensity": "CAPX Intensity (capx/at)",
+    "cash_ratio": "Cash Ratio (che/at)",
 }
 
 summary = (
@@ -62,7 +59,7 @@ summary = (
 print("\n=== Summary Statistics ===")
 print(summary.to_string())
 summary.to_csv(TABLE_PATH / "summary_statistics.csv")
-print(f"Saved summary_statistics.csv")
+print("Saved summary_statistics.csv")
 
 # ── 2. Correlation Matrix ─────────────────────────────────────────────────────
 corr_vars = list(VAR_LABELS.keys())
@@ -81,65 +78,62 @@ fig.savefig(FIGURE_PATH / "correlation_matrix.png", dpi=150)
 plt.close()
 print("Saved correlation_matrix.png")
 
-# ── 3. DOI–ROA Relationship (H1 preview) ──────────────────────────────────────
+# ── 3. Dependent Variable Distribution ────────────────────────────────────────
+fig, ax = plt.subplots(figsize=(8, 5))
+sns.histplot(df["roa"], bins=60, color=WU_BLUE, ax=ax, kde=True)
+ax.axvline(df["roa"].median(), color=WU_RED, linestyle="--", lw=2, label="Median")
+ax.set_xlabel("RoA (Return on Assets)")
+ax.set_ylabel("Firm-Year Observations")
+ax.set_title("Distribution of Return on Assets (RoA)", color=WU_BLUE)
+ax.legend()
+fig.tight_layout()
+fig.savefig(FIGURE_PATH / "dv_distribution.png", dpi=150)
+plt.close()
+print("Saved dv_distribution.png")
+
+# ── 4. Main Relationship — Treated vs. Control RoA Around the 2018 Shock ─────
 fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 
-# Left: raw scatter + bin means
-axes[0].scatter(df["doi"], df["roa"], alpha=0.04, s=5, color=WU_BLUE)
-bins = pd.cut(df["doi"], bins=20)
-bin_means = df.groupby(bins, observed=True)[["doi", "roa"]].mean()
-axes[0].plot(bin_means["doi"], bin_means["roa"], color=WU_RED, lw=2.5, label="Bin mean")
-axes[0].set_xlabel("DOI (foreign income share)")
-axes[0].set_ylabel("ROA")
-axes[0].set_title("DOI vs. ROA — Raw Relationship", color=WU_BLUE)
-axes[0].legend()
+# Left: mean RoA by year, treated vs. control, with 2018 shock line
+yearly = df.groupby(["fyear", "treated"], observed=True)["roa"].mean().unstack()
+yearly.columns = ["Control (JPN/KOR/TWN)", "Treated (CHN)"]
+axes[0].plot(yearly.index, yearly["Control (JPN/KOR/TWN)"], color=WU_BLUE, lw=2, marker="o", label="Control (JPN/KOR/TWN)")
+axes[0].plot(yearly.index, yearly["Treated (CHN)"], color=WU_RED, lw=2, marker="o", label="Treated (CHN)")
+axes[0].axvline(2018, color="gray", linestyle="--", lw=1.5, label="2018 tariff shock")
+axes[0].set_xlabel("Fiscal Year")
+axes[0].set_ylabel("Mean RoA")
+axes[0].set_title("RoA Over Time — Treated vs. Control", color=WU_BLUE)
+axes[0].legend(fontsize=8)
 
-# Right: by R&D tercile (H2 preview)
-# Reset index before assigning the tercile column — avoids pandas alignment bug
+# Right: post-shock RoA gap by R&D tercile (H2 preview)
 df_plot = df.copy()
 df_plot.reset_index(drop=True, inplace=True)
 df_plot["rd_tercile"] = pd.qcut(
-    df_plot["rd_intensity"], q=3, labels=["Low R&D", "Mid R&D", "High R&D"]
+    df_plot["rd_intensity"], q=3, labels=["Low R&D", "Mid R&D", "High R&D"], duplicates="drop"
 )
 
 palette = {"Low R&D": "#2166ac", "Mid R&D": "#f4a582", "High R&D": WU_RED}
-for label, group in df_plot.groupby("rd_tercile", observed=True):
-    group_reset = group.reset_index(drop=True)
-    bins_g = pd.cut(group_reset["doi"], bins=15)
-    bm = group_reset.groupby(bins_g, observed=True)[["doi", "roa"]].mean()
-    axes[1].plot(bm["doi"], bm["roa"], lw=2, label=label, color=palette[label])
-
-axes[1].set_xlabel("DOI (foreign income share)")
-axes[1].set_ylabel("ROA")
-axes[1].set_title("DOI vs. ROA by R&D Tercile (H2 preview)", color=WU_BLUE)
-axes[1].legend()
+gap_by_tercile = (
+    df_plot[df_plot["post"] == 1]
+    .groupby(["rd_tercile", "treated"], observed=True)["roa"]
+    .mean()
+    .unstack()
+)
+gap_by_tercile["gap"] = gap_by_tercile[1] - gap_by_tercile[0]
+axes[1].bar(gap_by_tercile.index.astype(str), gap_by_tercile["gap"],
+            color=[palette.get(t, WU_BLUE) for t in gap_by_tercile.index])
+axes[1].axhline(0, color="black", lw=1)
+axes[1].set_xlabel("R&D Intensity Tercile")
+axes[1].set_ylabel("Treated − Control RoA Gap (post-2018)")
+axes[1].set_title("Post-Shock Performance Gap by R&D Tercile (H2 preview)", color=WU_BLUE)
 
 fig.suptitle(
-    "Degree of Internationalization & Firm Performance — European SMEs",
+    "Institutional Disruption and Firm Performance — US-China Trade War",
     fontsize=13, y=1.02, color=WU_BLUE,
 )
 fig.tight_layout()
-fig.savefig(FIGURE_PATH / "doi_roa_relationship.png", dpi=150, bbox_inches="tight")
+fig.savefig(FIGURE_PATH / "main_relationship.png", dpi=150, bbox_inches="tight")
 plt.close()
-print("Saved doi_roa_relationship.png")
-
-# ── 4. Sample Composition ─────────────────────────────────────────────────────
-fig, axes = plt.subplots(1, 2, figsize=(13, 4))
-
-country_counts = df["loc"].value_counts().head(10)
-axes[0].barh(country_counts.index[::-1], country_counts.values[::-1], color=WU_BLUE)
-axes[0].set_xlabel("Firm-year observations")
-axes[0].set_title("Top 10 Countries in Sample", color=WU_BLUE)
-
-year_counts = df["fyear"].value_counts().sort_index()
-axes[1].bar(year_counts.index, year_counts.values, color=WU_BLUE)
-axes[1].set_xlabel("Fiscal Year")
-axes[1].set_ylabel("Observations")
-axes[1].set_title("Sample Coverage by Year", color=WU_BLUE)
-
-fig.tight_layout()
-fig.savefig(FIGURE_PATH / "sample_composition.png", dpi=150)
-plt.close()
-print("Saved sample_composition.png")
+print("Saved main_relationship.png")
 
 print("\nDescriptives complete. Check output/tables/ and output/figures/")

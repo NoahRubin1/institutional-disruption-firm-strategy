@@ -1,5 +1,6 @@
 .venv/
 data/raw/
+data/processed/
 .env
 references/*.pdf
 references/Meine Bibliothek.bib
@@ -8,3 +9,12 @@ __pycache__/
 *.pyc
 *.log
 *.tex
+*.egg-info/
+research_note.pdf
+research_note.html
+research_note.typ
+research_note_files/
+.ipynb_checkpoints/
+.vscode/settings.json
+*.swp
+Thumbs.db

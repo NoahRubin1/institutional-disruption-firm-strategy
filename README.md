@@ -100,8 +100,8 @@ to a subset of firms based on pre-determined geographic and sectoral exposure.
 ```
 institutional-disruption-firm-strategy/
 ├── data/
-│   ├── raw/          # Raw datasets (not tracked in Git)
-│   └── processed/    # Cleaned datasets
+│   ├── raw/          # Raw datasets (not tracked in Git — regenerate with `task pull`)
+│   └── processed/    # Cleaned datasets (not tracked in Git — regenerate with `task clean`)
 ├── code/
 │   ├── 01_pull_data.py
 │   ├── 02_clean.py
@@ -110,9 +110,29 @@ institutional-disruption-firm-strategy/
 ├── output/
 │   ├── tables/
 │   └── figures/
-└── references/
-    └── library.bib   # Full bibliography (BibTeX, auto-exported from Zotero)
+├── references/
+│   ├── library.bib   # Full bibliography (BibTeX, auto-exported from Zotero)
+│   └── apa.csl       # Citation style
+├── research_note.qmd # Quarto research note (renders to PDF via `task render`)
+├── Taskfile.yml       # Pipeline orchestration (`task all` runs everything)
+├── requirements.txt
+└── .env.example       # Copy to .env and fill in your own WRDS credentials
 ```
+
+## Reproducing the Analysis
+
+```bash
+git clone https://github.com/NoahRubin1/institutional-disruption-firm-strategy
+cd institutional-disruption-firm-strategy
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # then fill in your own WRDS_USERNAME
+task all                # pull -> clean -> descriptives -> regression -> render
+```
+
+`task all` produces `research_note.pdf` (not tracked in Git — render it
+locally). `data/` is also excluded from version control; both are
+regenerated from scratch by the pipeline above.
 
 ---
 

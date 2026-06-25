@@ -1,0 +1,24 @@
+,(1) OLS,(2) TWFE,(3) TWFE+H2
+treated,0.0332***,,
+treated_se,(0.0014),,
+post,-0.0006,,
+post_se,(0.0008),,
+treated_x_post,-0.0177***,-0.0322***,-0.0316***
+treated_x_post_se,(0.0012),(0.0013),(0.0015)
+rd_intensity,,,-0.3303***
+rd_intensity_se,,,(0.0324)
+treated_x_post_x_rd,,,0.1075**
+treated_x_post_x_rd_se,,,(0.0442)
+ln_at,0.0022***,0.0056***,0.0040***
+ln_at_se,(0.0003),(0.0010),(0.0009)
+leverage,-0.1229***,-0.1336***,-0.1344***
+leverage_se,(0.0038),(0.0053),(0.0052)
+capx_intensity,0.2616***,0.1539***,0.1509***
+capx_intensity_se,(0.0076),(0.0070),(0.0070)
+cash_ratio,0.0704***,0.0658***,0.0609***
+cash_ratio_se,(0.0035),(0.0035),(0.0035)
+Firm FE,No,Yes,Yes
+Year FE,No,Yes,Yes
+Clustered SE,Yes,Yes,Yes
+N,"140,718","140,718","140,718"
+R2,0.086,0.047,0.052
